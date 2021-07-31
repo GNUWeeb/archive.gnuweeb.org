@@ -191,14 +191,18 @@ class messageContext
 		echo "]},\"users\":{\"fields\":";
 		$cc = self::dumpUsersFields(true);
 		echo json_encode($cc, self::JSON_FLAGS);
-		echo ",\"data\":[";
-		foreach ($st->fetchAll(PDO::FETCH_NUM) as $k => $data) {
+		echo ",\"data\":{";
+		$arr = $st->fetchAll(PDO::FETCH_NUM);
+		foreach ($arr as $k => $data) {
+			echo "\"{$data[$cc["id"]]}\":";
 			$data[$cc["id"]] = (int)$data[$cc["id"]];
 			$data[$cc["tg_user_id"]] = (int)$data[$cc["tg_user_id"]];
 			$data[$cc["is_bot"]] = (int)$data[$cc["is_bot"]];
-			echo ($k ? "," : "").json_encode($data, JSON_UNESCAPED_SLASHES);
+			echo json_encode($data, JSON_UNESCAPED_SLASHES);
+			if (isset($arr[$k + 1]))
+				echo ",";
 		}
-		echo "]}}";
+		echo "}}}";
 	}
 }
 
