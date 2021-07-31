@@ -234,7 +234,7 @@ if (!isset($_GET["group_id"]) || !is_string($_GET["group_id"]) ||
 $groupId = (int)$_GET["group_id"];
 
 if (isset($_GET["start_at"])) {
-	if (!is_string($_GET["start_at"]) || !is_numeric($_GET["start"])) {
+	if (!is_string($_GET["start_at"]) || !is_numeric($_GET["start_at"])) {
 		$code    = 400;
 		$errMsg  = "start_at must be numberic";
 		goto err;

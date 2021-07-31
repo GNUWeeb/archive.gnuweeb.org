@@ -20,7 +20,7 @@ function fetch_msg(group_id, start_at, limit, callback)
 			throw e;
 		}
 	};
-	ch.open("GET", "/telegram/api.php?group_id="+group_id+"&start_at"+
+	ch.open("GET", "/telegram/api.php?group_id="+group_id+"&start_at="+
 		start_at+"&limit="+limit);
 	ch.send();
 }
