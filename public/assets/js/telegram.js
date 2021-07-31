@@ -20,7 +20,7 @@ function fetch_msg(group_id, start_at, limit, callback)
 			throw e;
 		}
 	};
-	ch.open("GET", "/telegram/api.php?group_id="+group_id+"&start_at="+
+	ch.open("GET", "/telegram/api.php?group_id="+group_id+"&start_at=1"+
 		start_at+"&limit="+limit);
 	ch.send();
 }
@@ -94,7 +94,7 @@ function load_message(json)
 	apply_messages(json.msg.messages);
 }
 
-fetch_msg(-1001483770714, 0, 1000, function (json) {
+fetch_msg(-1001483770714, 0, 2000, function (json) {
 	let chat_cg = gid("chat-cg");
 	load_message(json);
 	chat_cg.scrollTo(0, chat_cg.scrollHeight);
