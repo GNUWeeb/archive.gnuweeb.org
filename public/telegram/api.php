@@ -106,6 +106,7 @@ class messageContext
 			$query .= " AND c.msg_id <= ? ";
 		}
 		$query .= " ORDER BY c.tg_date DESC LIMIT {$this->limit}";
+		$query = "SELECT * FROM ({$query}) x ORDER BY tg_date ASC;";
 		return $this->pdo->prepare($query);
 	}
 

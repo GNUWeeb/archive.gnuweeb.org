@@ -94,7 +94,7 @@ function load_message(json)
 	apply_messages(json.msg.messages);
 }
 
-fetch_msg(-1001483770714, 0, 300, function (json) {
+fetch_msg(-1001483770714, 0, 1000, function (json) {
 	let chat_cg = gid("chat-cg");
 	load_message(json);
 	chat_cg.scrollTo(0, chat_cg.scrollHeight);
