@@ -21,6 +21,7 @@ body {
 	padding: 10px;
 	border: 1px solid #000;
 	display: flex;
+	text-align: left;
 }
 .pp-cg {
 	border: 1px solid #000;
@@ -32,8 +33,20 @@ body {
 	margin-left: 10px;
 	border: 1px solid #000;
 	min-height: 30px;
-	max-height: 100px;
-	min-width: 10%;
+	min-width: 20%;
 	max-width: 70%;
 	border-radius: 3px;
+	padding: 5px 10px 10px 10px;
+	word-wrap: break-word;
+	text-align: left;
+}
+.name-cg {
+	width: 100px;
+	height: 20px;
+	margin-bottom: 10px;
+}
+.text-cg {
+	max-width: 40%;
+	word-wrap: break-word;
+	border: 1px solid #000;
 }

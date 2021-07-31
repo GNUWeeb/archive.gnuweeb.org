@@ -7,17 +7,18 @@
 <body>
 <div class="main-cg">
 	<h1>GNU/Weeb Telegram Chat Archive</h1>
-	<div id="chat-cg">
+	<div id="msg-stub" style="display:none;">
 		<div class="msg-cg">
 			<div class="pp-cg"></div>
-			<div class="content-cg"></div>
+			<div class="content-cg">
+				<div class="name-cg"><b>{{user_id}}</b></div>
+				{{text}}
+			</div>
 		</div>
 	</div>
+	<div id="chat-cg">
+	</div>
 </div>
-<script type="text/javascript" src="/assets/js/telegram.js">
-	function gid(id) {
-		return document.getElementById(id);
-	}
-</script>
+<script type="text/javascript" src="/assets/js/telegram.js"></script>
 </body>
 </html>
