@@ -123,8 +123,16 @@ class messageContext
 			"a.last_name",
 			"a.is_bot"
 		];
+		static $extraCut = [
+			// "photo"
+		];
+		static $extraNoCut = [
+			// "CONCAT(LOWER(HEX(b.md5_sum)), \"_\", LOWER(HEX(b.sha1_sum)))"
+		];
 
-		return $cutPrx ? self::cutPrx($fields) : $fields;
+		return $cutPrx
+			? array_merge(self::cutPrx($fields), $extraCut)
+			: array_merge($fields, $extraNoCut);
 	}
 
 
@@ -144,7 +152,10 @@ class messageContext
 
 		$fields = implode(",", self::dumpUsersFields());
 		$query  = <<<SQL
-			SELECT {$fields} FROM gw_users AS a WHERE a.id IN
+			SELECT {$fields} FROM
+			gw_users AS a
+			-- INNER JOIN gw_files AS b ON a.
+			WHERE a.id IN
 		SQL;
 		$i = 0;
 		$query .= "(";
@@ -267,7 +278,6 @@ try {
 exit(0);
 
 err_ob_clean:
-throw $e;
 ob_get_clean();
 
 
