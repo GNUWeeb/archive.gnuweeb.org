@@ -16,7 +16,7 @@ function gid(id)
 }
 
 
-function fetch_msg(group_id, start_at, limit, callback, tg_date_sort = "desc")
+function fetch_msg(group_id, start_at, limit, callback, tg_date_sort = "asc")
 {
 	let ch = new XMLHttpRequest;
 	ch.onload = function () {
