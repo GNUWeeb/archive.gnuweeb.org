@@ -63,12 +63,23 @@ class messageContext
 	}
 
 
+	private const MSG_TYPE_MAP = [
+		"animation"	=> 0,
+		"document"	=> 1,
+		"photo"		=> 2,
+		"sticker"	=> 3,
+		"text"		=> 4,
+		"video"		=> 5
+	];
+
+
 	/**
 	 * @return array
 	 */
 	private static function dumpMessagesFields(bool $cutPrx = false)
 	{
 		static $fields = [
+			"a.id",
 			"a.tg_msg_id",
 			"a.reply_to_tg_msg_id",
 			"a.msg_type",
@@ -79,16 +90,34 @@ class messageContext
 			"c.text",
 			"c.tg_date"
 		];
+		static $extraCut = [
+			"file"
+		];
+		static $extraNoCut = [
+			<<<SQL
+				CONCAT(
+					LOWER(HEX(d.md5_sum)),
+					"_",
+					LOWER(HEX(d.sha1_sum)),
+					".",
+					LOWER(d.ext)
+				)
+			SQL
+		];
 
-		return $cutPrx ? self::cutPrx($fields) : $fields;
+		return $cutPrx
+			? self::cutPrx(array_merge($fields, $extraCut))
+			: array_merge($fields, $extraNoCut);
 	}
 
 
 	/**
-	 * @param array &$data
+	 * @param array		&$data
+	 * @param string	$tgDateSort = "desc"
 	 * @return \PDOStatement
 	 */
-	private function loadStMessages(array &$data): PDOStatement
+	private function loadStMessages(array &$data,
+					string $tgDateSort = "desc"): PDOStatement
 	{
 		$fields = implode(",", self::dumpMessagesFields());
 		$data[] = $this->chatId;
@@ -98,15 +127,15 @@ class messageContext
 			FROM gw_group_messages AS a
 			INNER JOIN gw_groups AS b ON b.id = a.group_id
 			INNER JOIN gw_group_message_data AS c ON a.id = c.msg_id
-			WHERE b.tg_group_id = ?
-
+			LEFT JOIN gw_files AS d ON d.id = c.file
+			WHERE b.tg_group_id = ? AND a.msg_type = 'video'
 		SQL;
 		if ($this->startAt) {
 			$data[] = $this->startAt;
 			$query .= " AND c.msg_id <= ? ";
 		}
 		$query .= " ORDER BY c.tg_date DESC LIMIT {$this->limit}";
-		$query = "SELECT * FROM ({$query}) x ORDER BY tg_date ASC;";
+		$query = "SELECT * FROM ({$query}) x ORDER BY tg_date {$tgDateSort};";
 		return $this->pdo->prepare($query);
 	}
 
@@ -172,16 +201,19 @@ class messageContext
 	private const JSON_FLAGS = JSON_UNESCAPED_SLASHES;
 
 	/**
+	 * @param string $tgDateSort
 	 * @return void
 	 */
-	public function loadMessage(): void
+	public function loadMessage(string $tgDateSort = "desc"): void
 	{
 		$userIds = [];
 		$data    = [];
 
-		$st = $this->loadStMessages($data);
+		$st = $this->loadStMessages($data, $tgDateSort);
 		$st->execute($data);
-		echo "{\"messages\":{\"fields\":";
+		echo "{\"messages\":{\"msg_type_map\":";
+		echo json_encode(self::MSG_TYPE_MAP);
+		echo ",\"fields\":";
 		$cc = self::dumpMessagesFields(true);
 		echo json_encode($cc, self::JSON_FLAGS);
 		echo ",\"data\":[";
@@ -193,6 +225,8 @@ class messageContext
 			$data[$cc["reply_to_tg_msg_id"]] = (int)$data[$cc["reply_to_tg_msg_id"]];
 			$data[$cc["is_forwarded_msg"]] = (int)$data[$cc["is_forwarded_msg"]];
 			$data[$cc["is_deleted"]] = (int)$data[$cc["is_deleted"]];
+			$data[$cc["msg_type"]] = self::MSG_TYPE_MAP[$data[$cc["msg_type"]]] ?? -1;
+			$data[$cc["tg_date"]] = date("d F Y H:i:s", strtotime($data[$cc["tg_date"]]) + (3600 * 7));
 			echo ($k ? "," : "").json_encode($data, JSON_UNESCAPED_SLASHES);
 		}
 
@@ -223,6 +257,7 @@ header("Content-Type: application/json");
 $status  = "error";
 $startAt = 0;
 $limit   = 100;
+$tgDateSort = "DESC";
 
 if (!isset($_GET["group_id"]) || !is_string($_GET["group_id"]) ||
     !is_numeric($_GET["group_id"])) {
@@ -240,6 +275,12 @@ if (isset($_GET["start_at"])) {
 		goto err;
 	}
 	$startAt = (int)$_GET["start_at"];
+
+	if ($startAt < 0) {
+		$code    = 400;
+		$errMsg  = "start_at cannot be negative";
+		goto err;
+	}
 }
 
 
@@ -250,6 +291,28 @@ if (isset($_GET["limit"])) {
 		goto err;
 	}
 	$limit = (int)$_GET["limit"];
+
+	if ($limit < 0) {
+		$code    = 400;
+		$errMsg  = "limit cannot be negative";
+		goto err;
+	}
+
+	if ($limit > 5000) {
+		$code    = 400;
+		$errMsg  = "limit cannot be above 5000";
+		goto err;
+	}
+}
+
+
+if (isset($_GET["tg_date_sort"])) {
+	$tgDateSort = strtolower(trim($_GET["tg_date_sort"]));
+	if ($tgDateSort !== "desc" && $tgDateSort !== "asc") {
+		$code    = 400;
+		$errMsg  = "Invalid tg_date_sort (available: asc, desc)";
+		goto err;
+	}
 }
 
 
@@ -261,7 +324,7 @@ try {
 		"code"		=> 200,
 		"msg"		=> 1
 	]), 0, -2);
-	$st->loadMessage();
+	$st->loadMessage($tgDateSort);
 	echo "}";
 } catch (\Excpetion $e) {
 	$code   = 500;

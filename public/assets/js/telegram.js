@@ -2,13 +2,16 @@
 
 var USER_MAP = {};
 var USER_MAP_FIELDS = null;
+var MSG_TYPE_MAP = null;
+const ASSERT_BASE_URL = "https://www.gnuweeb.org/archives/tgvisd/storage/files/";
 
-function gid(id) {
+function gid(id)
+{
 	return document.getElementById(id);
 }
 
 
-function fetch_msg(group_id, start_at, limit, callback)
+function fetch_msg(group_id, start_at, limit, callback, tg_date_sort = "desc")
 {
 	let ch = new XMLHttpRequest;
 	ch.onload = function () {
@@ -21,12 +24,13 @@ function fetch_msg(group_id, start_at, limit, callback)
 		}
 	};
 	ch.open("GET", "/telegram/api.php?group_id="+group_id+"&start_at="+
-		start_at+"&limit="+limit);
+		start_at+"&limit="+limit+"&tg_date_sort="+tg_date_sort);
 	ch.send();
 }
 
 
-function escape_html(str) {
+function escape_html(str)
+{
 	return str
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
@@ -34,6 +38,7 @@ function escape_html(str) {
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;");
 }
+
 
 function sanitize_text(str)
 {
@@ -73,13 +78,36 @@ function apply_messages(msgs)
 		i;
 
 
-	let	f_user_id	= fields.user_id,
-		f_text		= fields.text;
+	let	f_id		= fields.id,
+		f_user_id	= fields.user_id,
+		f_text		= fields.text,
+		f_tg_msg_id	= fields.tg_msg_id,
+		f_msg_type	= fields.msg_type,
+		f_file		= fields.file,
+		f_tg_date	= fields.tg_date;
 
 	for (i in data) {
+		let cd = data[i];
+		let content = "";
+
+		switch (cd[f_msg_type]) {
+		case MSG_TYPE_MAP["sticker"]:
+			content += "<img class=\"ct-sticker\" alt=\""+cd[f_file]+"\" src=\""+ASSERT_BASE_URL+"/"+cd[f_file]+"\"/><br/>";
+			break;
+		case MSG_TYPE_MAP["photo"]:
+			content += "<img class=\"ct-photo\" alt=\""+cd[f_file]+"\" src=\""+ASSERT_BASE_URL+"/"+cd[f_file]+"\"/><br/>";
+			break;
+		case MSG_TYPE_MAP["video"]:
+			content += "<video class=\"ct-video\" controls><source src=\""+ASSERT_BASE_URL+"/"+cd[f_file]+"\" type=\"video/mp4\">Your browser does not support the video tag.</video><br/>";
+			break;
+		}
+
+		content += sanitize_text(cd[f_text]);
 		r += stub
-			.replace("{{user_id}}", resolve_user(data[i][f_user_id], "username"))
-			.replace("{{text}}", sanitize_text(data[i][f_text]));
+			.replace("{{msg_id}}", cd[f_id])
+			.replace("{{tg_date}}", cd[f_tg_date])
+			.replace("{{user_id}}", resolve_user(cd[f_user_id], "username"))
+			.replace("{{content}}", content);
 	}
 	chat_cg.innerHTML += r;
 }
@@ -90,12 +118,16 @@ function load_message(json)
 	if (json.status !== "ok")
 		throw Error("Error: "+json.code+" "+json.msg);
 
+	if (MSG_TYPE_MAP == null)
+		MSG_TYPE_MAP = json.msg.messages.msg_type_map;
+
 	apply_users(json.msg.users);
 	apply_messages(json.msg.messages);
 }
 
-fetch_msg(-1001483770714, 1500, 1500, function (json) {
+
+fetch_msg(-1001483770714, 10000, 5000, function (json) {
 	let chat_cg = gid("chat-cg");
 	load_message(json);
 	chat_cg.scrollTo(0, chat_cg.scrollHeight);
-});
+}, "asc");

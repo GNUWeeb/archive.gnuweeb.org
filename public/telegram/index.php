@@ -8,11 +8,12 @@
 <div class="main-cg">
 	<h1>GNU/Weeb Telegram Chat Archive</h1>
 	<div id="msg-stub" style="display:none;">
-		<div class="msg-cg">
+		<div id="msg-cg-{{msg_id}}" class="msg-cg">
 			<div class="pp-cg"></div>
 			<div class="content-cg">
-				<div class="name-cg"><b>{{user_id}}</b></div>
-				{{text}}
+				<div class="cg-inline name-cg"><b>{{user_id}}</b></div>
+				<div class="cg-inline tg-date-cg"><b>{{tg_date}}</b></div>
+				<div>{{content}}</div>
 			</div>
 		</div>
 	</div>

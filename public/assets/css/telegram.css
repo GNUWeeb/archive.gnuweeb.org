@@ -9,7 +9,7 @@ body {
 	margin: auto;
 	border: 1px solid #000;
 	width: 1250px;
-	height: 500px;
+	height: 700px;
 	overflow-y: scroll;
 }
 .msg-cg {
@@ -50,4 +50,24 @@ body {
 	max-width: 40%;
 	word-wrap: break-word;
 	border: 1px solid #000;
+}
+.ct-sticker {
+	max-width: 40%;
+	border: 1px solid #000;
+}
+.ct-photo {
+	max-width: 70%;
+	max-height: 800px;
+	border: 1px solid #000;
+}
+.ct-video {
+	max-width: 90%;
+	max-height: 900px;
+	border: 1px solid #000;	
+}
+.cg-inline {
+	display: inline-block;
+}
+.tg-date-cg {
+
 }
