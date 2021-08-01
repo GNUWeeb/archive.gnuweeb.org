@@ -3,7 +3,12 @@
 var USER_MAP = {};
 var USER_MAP_FIELDS = null;
 var MSG_TYPE_MAP = null;
+var MIN_MSG_ID = null;
 const ASSERT_BASE_URL = "https://www.gnuweeb.org/archives/tgvisd/storage/files/";
+
+const	MSG_LOAD_PREPEND = 1,
+	MSG_LOAD_APPEND = 2,
+	MSG_LOAD_REPLACE = 3;
 
 function gid(id)
 {
@@ -68,8 +73,11 @@ function resolve_user(user_id, field = null)
 }
 
 
-function apply_messages(msgs)
+function apply_messages(msgs, type = null)
 {
+	if (type == null)
+		type = MSG_LOAD_PREPEND;
+
 	let	fields	= msgs.fields,
 		data	= msgs.data,
 		stub	= gid("msg-stub").innerHTML,
@@ -91,6 +99,12 @@ function apply_messages(msgs)
 		let content = "";
 		let username = resolve_user(cd[f_user_id], "username");
 
+		if (MIN_MSG_ID == null) {
+			MIN_MSG_ID = cd[f_id];
+		} else if (MIN_MSG_ID > cd[f_id]) {
+			MIN_MSG_ID = cd[f_id];
+		}
+
 		switch (cd[f_msg_type]) {
 		case MSG_TYPE_MAP["sticker"]:
 			content += "<img class=\"ct-sticker\" alt=\""+cd[f_file]+"\" src=\""+ASSERT_BASE_URL+"/"+cd[f_file]+"\"/><br/>";
@@ -107,14 +121,25 @@ function apply_messages(msgs)
 		r += stub
 			.replace("{{msg_id}}", cd[f_id])
 			.replace("{{tg_date}}", cd[f_tg_date])
-			.replace("{{user_id}}", username ? username : "No Username")
+			.replace("{{user_id}}", username ? sanitize_text(username) : "No Username")
 			.replace("{{content}}", content);
 	}
-	chat_cg.innerHTML += r;
+
+	switch (type) {
+	case MSG_LOAD_PREPEND:
+		chat_cg.innerHTML = r + chat_cg.innerHTML;
+		break;
+	case MSG_LOAD_APPEND:
+		chat_cg.innerHTML += r;
+		break;
+	case MSG_LOAD_REPLACE:
+		chat_cg.innerHTML = r;
+		break;
+	}
 }
 
 
-function load_message(json)
+function load_message(json, mode = null)
 {
 	if (json.status !== "ok")
 		throw Error("(code: "+json.code+") "+json.msg);
@@ -123,12 +148,25 @@ function load_message(json)
 		MSG_TYPE_MAP = json.msg.messages.msg_type_map;
 
 	apply_users(json.msg.users);
-	apply_messages(json.msg.messages);
+	apply_messages(json.msg.messages, mode);
 }
 
 
-fetch_msg(-1001483770714, 0, 5000, function (json) {
+let load_cb = function (json, do_scroll = false) {
 	let chat_cg = gid("chat-cg");
 	load_message(json);
-	chat_cg.scrollTo(0, chat_cg.scrollHeight);
-}, "asc");
+
+	/*
+	 * Scroll down to the latest message!
+	 */
+	if (do_scroll)
+		chat_cg.scrollTo(0, chat_cg.scrollHeight);
+};
+
+fetch_msg(-1001483770714, 0, 500, function(json) {
+	load_cb(json, true);
+	// fetch_msg(-1001483770714, MIN_MSG_ID, 2000, function(json) {
+	// 	load_cb(json);
+	// 	fetch_msg(-1001483770714, MIN_MSG_ID, 4000, load_cb);
+	// });
+});
