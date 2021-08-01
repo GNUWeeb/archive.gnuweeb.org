@@ -89,6 +89,7 @@ function apply_messages(msgs)
 	for (i in data) {
 		let cd = data[i];
 		let content = "";
+		let username = resolve_user(cd[f_user_id], "username");
 
 		switch (cd[f_msg_type]) {
 		case MSG_TYPE_MAP["sticker"]:
@@ -106,7 +107,7 @@ function apply_messages(msgs)
 		r += stub
 			.replace("{{msg_id}}", cd[f_id])
 			.replace("{{tg_date}}", cd[f_tg_date])
-			.replace("{{user_id}}", resolve_user(cd[f_user_id], "username"))
+			.replace("{{user_id}}", username ? username : "No Username")
 			.replace("{{content}}", content);
 	}
 	chat_cg.innerHTML += r;
@@ -116,7 +117,7 @@ function apply_messages(msgs)
 function load_message(json)
 {
 	if (json.status !== "ok")
-		throw Error("Error: "+json.code+" "+json.msg);
+		throw Error("(code: "+json.code+") "+json.msg);
 
 	if (MSG_TYPE_MAP == null)
 		MSG_TYPE_MAP = json.msg.messages.msg_type_map;
@@ -126,7 +127,7 @@ function load_message(json)
 }
 
 
-fetch_msg(-1001483770714, 10000, 5000, function (json) {
+fetch_msg(-1001483770714, 0, 5000, function (json) {
 	let chat_cg = gid("chat-cg");
 	load_message(json);
 	chat_cg.scrollTo(0, chat_cg.scrollHeight);

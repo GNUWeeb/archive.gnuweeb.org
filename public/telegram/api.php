@@ -128,7 +128,7 @@ class messageContext
 			INNER JOIN gw_groups AS b ON b.id = a.group_id
 			INNER JOIN gw_group_message_data AS c ON a.id = c.msg_id
 			LEFT JOIN gw_files AS d ON d.id = c.file
-			WHERE b.tg_group_id = ? AND a.msg_type = 'video'
+			WHERE b.tg_group_id = ?
 		SQL;
 		if ($this->startAt) {
 			$data[] = $this->startAt;
@@ -298,9 +298,9 @@ if (isset($_GET["limit"])) {
 		goto err;
 	}
 
-	if ($limit > 5000) {
+	if ($limit > 10000) {
 		$code    = 400;
-		$errMsg  = "limit cannot be above 5000";
+		$errMsg  = "limit cannot be above 10000";
 		goto err;
 	}
 }
