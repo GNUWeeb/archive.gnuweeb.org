@@ -20,6 +20,16 @@
 	<div id="chat-cg">
 	</div>
 </div>
+<script type="text/javascript">
+const API_BASE_URL = <?php
+$apiBaseUrl = getenv("API_BASE_URL");
+if ($apiBaseUrl) {
+	echo json_encode($apiBaseUrl, JSON_UNESCAPED_SLASHES);
+} else {
+	echo json_encode("/", JSON_UNESCAPED_SLASHES);
+}
+?>;
+</script>
 <script type="text/javascript" src="/assets/js/telegram.js?w=<?= time() ?>"></script>
 </body>
 </html>

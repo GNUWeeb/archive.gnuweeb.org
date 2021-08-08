@@ -8,8 +8,8 @@ body {
 #chat-cg {
 	margin: auto;
 	border: 1px solid #000;
-	width: 1250px;
-	height: 700px;
+	width: 90%;
+	height: 500px;
 	overflow-y: scroll;
 }
 .msg-cg {

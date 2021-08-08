@@ -122,9 +122,7 @@ class messageContext
 		$fields = implode(",", self::dumpMessagesFields());
 		$data[] = $this->chatId;
 		$query  = <<<SQL
-			SELECT 
-				{$fields}
-			FROM gw_group_messages AS a
+			SELECT {$fields} FROM gw_group_messages AS a
 			INNER JOIN gw_groups AS b ON b.id = a.group_id
 			INNER JOIN gw_group_message_data AS c ON a.id = c.msg_id
 			LEFT JOIN gw_files AS d ON d.id = c.file
@@ -135,7 +133,10 @@ class messageContext
 			$query .= " AND c.msg_id <= ? ";
 		}
 		$query .= " ORDER BY c.tg_date DESC LIMIT {$this->limit}";
-		$query = "SELECT * FROM ({$query}) x ORDER BY tg_date {$tgDateSort};";
+
+		if (strtolower($tgDateSort) !== "desc")
+			$query = "SELECT * FROM ({$query}) x ORDER BY tg_date ASC;";
+
 		return $this->pdo->prepare($query);
 	}
 

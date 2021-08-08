@@ -28,7 +28,7 @@ function fetch_msg(group_id, start_at, limit, callback, tg_date_sort = "asc")
 			throw e;
 		}
 	};
-	ch.open("GET", "/telegram/api.php?group_id="+group_id+"&start_at="+
+	ch.open("GET", API_BASE_URL+"/telegram/api.php?group_id="+group_id+"&start_at="+
 		start_at+"&limit="+limit+"&tg_date_sort="+tg_date_sort);
 	ch.send();
 }
