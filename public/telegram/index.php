@@ -27,7 +27,7 @@ $apiBaseUrl = getenv("API_BASE_URL");
 if ($apiBaseUrl) {
 	echo json_encode($apiBaseUrl, JSON_UNESCAPED_SLASHES);
 } else {
-	echo json_encode("/", JSON_UNESCAPED_SLASHES);
+	echo "\"\"";
 }
 ?>;
 </script>
